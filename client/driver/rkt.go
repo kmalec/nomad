@@ -82,6 +82,7 @@ type RktDriverConfig struct {
 	PortMap          map[string]string   `mapstructure:"-"`                  // A map of host port and the port name defined in the image manifest file
 	Volumes          []string            `mapstructure:"volumes"`            // Host-Volumes to mount in, syntax: /path/to/host/directory:/destination/path/in/container[:readOnly]
 	InsecureOptions  []string            `mapstructure:"insecure_options"`   // list of args for --insecure-options
+	SetEnvFiles      []string            `mapstructure:"set_env_file"`       // list of files to pass to --set-env-file rkt option; if set, but any of the files doesn't exist, rkt fails
 
 	NoOverlay bool `mapstructure:"no_overlay"` // disable overlayfs for rkt run
 	Debug     bool `mapstructure:"debug"`      // Enable debug option for rkt command
@@ -340,6 +341,13 @@ func (d *RktDriver) Start(ctx *ExecContext, task *structs.Task) (*StartResponse,
 	}
 
 	cmdArgs = append(cmdArgs, img)
+
+	// first, set any env files, if provided; this is overriden by the --set-env vars below
+	if len(driverConfig.SetEnvFiles) > 0 {
+		for _, file := range driverConfig.SetEnvFiles {
+			cmdArgs = append(cmdArgs, fmt.Sprintf("--set-env-file=%s", file))
+		}
+	}
 
 	// Inject environment variables
 	for k, v := range ctx.TaskEnv.Map() {

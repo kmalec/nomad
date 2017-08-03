@@ -60,6 +60,18 @@ The `rkt` driver supports the following configuration in the job spec:
     }
     ```
 
+* `set_env_file` - (Optional) A list of local files that will be passed to `rkt run`
+  command using `--set-env-file` flags. `rkt run` will fail if any of the files
+  provided is missing.
+  Any variables inherited from the files are overriden by the `env` section of the job.
+
+  ```hcl
+  config {
+    image = "example.com/image:1.0"
+    set_env_file = ["/opt/app/env/env1", "/opt/app/env/env2"]
+  }
+  ```
+
 * `trust_prefix` - (Optional) The trust prefix to be passed to rkt. Must be
   reachable from the box running the nomad agent. If not specified, the image is
   run with `--insecure-options=all`.
@@ -96,7 +108,6 @@ The `rkt` driver supports the following configuration in the job spec:
             app = "8080-tcp"
     }
    ```
-   
 
 * `debug` - (Optional) Enable rkt command debug option.
 
